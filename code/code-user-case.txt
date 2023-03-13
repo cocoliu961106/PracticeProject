@@ -1,0 +1,12 @@
+// --可直接copy作为提交接口中的code参数的值
+
+<--两数之和-->
+package main
+
+import "fmt"
+
+func main() {
+    var a, b int
+    fmt.Scanln(&a, &b)
+    fmt.Print(a + b)
+}
