@@ -45,7 +45,7 @@ func FindRepeatEmail(mail string) (int64, error) {
 func GetRankList(startPoint int, size int) ([]*UserBasic, int64, error) {
 	var count int64
 	list := make([]*UserBasic, 0)
-	err := DB.Model(new(UserBasic)).Count(&count).Order("finish_problem_num DESC, submit_num ASC").
+	err := DB.Model(new(UserBasic)).Count(&count).Order("pass_num DESC, submit_num ASC").
 		Offset(startPoint).Limit(size).Find(&list).Error
 	return list, count, err
 }

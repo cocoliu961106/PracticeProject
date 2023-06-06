@@ -27,21 +27,16 @@ func (table *ProblemBasic) TableName() string {
 func GetProblemList(startPoint int, size int, keyword string, categoryIdentity string) ([]*ProblemBasic, int64, error) {
 	var count int64
 	list := make([]*ProblemBasic, 0) // 保存problemlist
-	// 查询表
-	tx := DB.Model(new(ProblemBasic)).Preload("ProblemCategories").Preload("ProblemCategories.CategoryBasic"). // 指定要查询的表
-															Where("title like ? OR content like ?", "%"+keyword+"%", "%"+keyword+"%") // 查询条件
-	var err error = nil
+	tx := DB.Model(new(ProblemBasic)).Distinct("`problem_basic`.`id`").Select("DISTINCT(`problem_basic`.`id`), `problem_basic`.`identity`, "+
+		"`problem_basic`.`title`, `problem_basic`.`max_runtime`, `problem_basic`.`max_mem`, `problem_basic`.`pass_num`, "+
+		"`problem_basic`.`submit_num`, `problem_basic`.`created_at`, `problem_basic`.`updated_at`, `problem_basic`.`deleted_at` ").Preload("ProblemCategories").Preload("ProblemCategories.CategoryBasic").
+		Where("title like ? OR content like ? ", "%"+keyword+"%", "%"+keyword+"%")
 	if categoryIdentity != "" {
-		tx.Joins("RIGHT JOIN problem_category pc on pc.problem_id = problem_basic.id"). // 根据外键关联表获得包含指定分类id的问题列（问题表<右关联>问题分类表<右关联>分类表）
-												Where("pc.category_id = (SELECT cb.id FROM category_basic cb WHERE cb.identity = ? )", categoryIdentity)
+		tx.Joins("RIGHT JOIN problem_category pc on pc.problem_id = problem_basic.id").
+			Where("pc.category_id = (SELECT cb.id FROM category_basic cb WHERE cb.identity = ? )", categoryIdentity)
 	}
-	err = tx.Count(&count).Offset(startPoint).Limit(size).Find(&list).Error
+	err := tx.Order("problem_basic.id DESC").Offset(startPoint).Limit(size).Find(&list).Distinct("`problem_basic`.`id`").Count(&count).Error
 	return list, count, err
-	/*data := make([]*Problem, 0)
-	DB.Find(&data)
-	for _, v := range data {
-		fmt.Printf("Problem ==> %v \n", v)
-	}*/
 }
 
 func GetProblemDetail(identity string) (*gorm.DB, *ProblemBasic) {
